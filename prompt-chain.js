@@ -102,7 +102,9 @@ async function runPromptchain(customerQuery) {
   ];
 }
 
-// testing
-runPromptchain("i notice a deduction in my account last night").then((aiResponse) => {
-  console.log(aiResponse);
-});
+// testing testing testing!
+runPromptchain("i notice a deduction in my account last night").then(
+  (aiResponse) => {
+    console.log(aiResponse);
+  }
+);
