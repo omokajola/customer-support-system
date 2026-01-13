@@ -18,6 +18,7 @@ const availableCategories = [
 ];
 
 // helper function
+
 async function chatBot(userPrompt) {
   const response = await client.chat.completions.create({
     model: "openai/gpt-3.5-turbo",
