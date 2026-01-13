@@ -17,6 +17,13 @@ const availableCategories = [
   "general information",
 ];
 
+async function chatBot(userPrompt) {
+  const response = await client.chat.completions.create({
+    model: "openai/gpt-3.5-turbo",
+    messages: [{ role: "user", content: userPrompt }],
+  });
+  return response.choices[0].message.content.trim();
+}
 // below are the 5 different stages in which the model processes the customer query and provide
 //  and an unambiguous response to the user
 
@@ -24,116 +31,61 @@ const availableCategories = [
 // and interprete the customer's request.
 
 async function intent(customerQuery) {
-  const response = await client.chat.completions.create({
-    model: "openai/gpt-3.5-turbo",
-    messages: [
-      {
-        role: "system",
-        content: `You are an intelligent customer support, kindly understand the customer intent
-           and output their intention in just two words that fit tthe customer intent, no explanation`,
-      },
-
-      {
-        role: "user",
-        content: customerQuery,
-      },
-    ],
-  });
-
-  return response.choices[0].message.content.trim();
+  return await chatBot(
+    `analyze the intent of this customer query: ${customerQuery}\n\n
+      you are a banking support assistant specializing in analyzing customer's query, understand and analyze thier query 
+ and state their intention in maximum  4 words`
+  );
 }
 
 // stage 2: map the analyzed intent to 2-3 most relevant categories from the available categories
 
 async function suggestedCategories(intentAnalyzer) {
-  const response = await client.chat.completions.create({
-    model: "openai/gpt-3.5-turbo",
-
-    messages: [
-      {
-        role: "system",
-        content: `You are an intelligent banking customer support, you are to help
-         customers get through to their complaints, take thier intent, suggest two or more categories 
-         that might apply from ${availableCategories.join(
-           ","
-         )}  in just one line and no explanation 
-         just from the list and output the best two or more that fit and seperated with comma`,
-      },
-      {
-        role: "user",
-        content: `customer intent: ${intentAnalyzer}`,
-      },
-    ],
-  });
-  return response.choices[0].message.content.trim();
+  return await chatBot(
+    `based on the analyzed intent: ${intentAnalyzer} suggest 2-3 categories that best match the customer's query from ${availableCategories.join(
+      ","
+    )} no explanation, just return strictly the categories that fit and seperate the suggested categories with comma`,
+    "you are an intelligent banking customer support, specialize in customers query classification"
+  );
 }
 
-// stage 3 : the prompt is designed to select the best fit from the mapped categories
+//  stage 3: select the best category
 
 async function selectedCategory(customerQuery, mappedCategory) {
-  const response = await client.chat.completions.create({
-    model: "openai/gpt-3.5-turbo",
-    messages: [
-      {
-        role: "system",
-        content: `you are an assistant bank customer support, select the single best, that fit the user's query
-         from the provided category list and just retrun only the category name, no extra information.
-       
-        kindly choose from below
-        available categories : ${availableCategories.join(",")}`,
-      },
+  return await chatBot(
+    `
+    customer's query: ${customerQuery}\n\n
 
-      {
-        role: "user",
-        content: mappedCategory,
-      },
-    ],
-  });
-  return response.choices[0].message.content.trim();
-}
+  suggested categories: ${mappedCategory}
 
-async function extractDetails(customerQuery, selectedCategory) {
-  const response = await client.chat.completions.create({
-    model: "openai/gpt-3.5-turbo",
-    messages: [
-      {
-        role: "system",
-        content: `you are an assistant bank customer support, kindly ask the user for the necessary details
-         example transaction date, amount, card type, etc that requires to complete their request `,
-      },
+  select only single best that matches the customer's query. Respond with only the category name`,
 
-      {
-        role: "user",
-        content: `${customerQuery}
-        selected category : ${selectedCategory}`,
-      },
-    ],
-  });
-  return response.choices[0].message.content.trim();
+    "you are an intelligent banking customer support, specialize in customer's query classification"
+  );
 }
 // stage 4:Extract and request for an additional important details to complete the query
 
-async function shortResponse(customerQuery, extractDetails) {
-  const response = await client.chat.completions.create({
-    model: "openai/gpt-3.5-turbo",
-    messages: [
-      {
-        role: "system",
-        content: `you are a customer support assitant for a bank, generate a suitable short response  to the user`,
-      },
-
-      {
-        role: "user",
-        content: `${customerQuery} 
-
-       previous support response: ${extractDetails}`,
-      },
-    ],
-  });
-  return response.choices[0].message.content.trim();
+async function extractDetails(customerQuery, selectedCategory) {
+  return await chatBot(
+    `
+     customer's query: ${customerQuery}\n\n
+    based on selected category ${selectedCategory}
+     `,
+    "you are a banking customer support assitant, request for only specific details needed to resolve the customer's issue or complaint, in just one sentence"
+  );
 }
- 
 // stage 5: Generate a suitable response to the user
+
+async function shortResponse(customerQuery, extractDetails) {
+  return await chatBot(
+    `
+    customer's query: ${customerQuery}\n\n
+    requested details: ${extractDetails}
+    
+    you are a banking customer support assistant write a very short and closing response
+     to the customer without repeating the requested details`
+  );
+}
 
 async function runPromptchain(customerQuery) {
   const intentAnalyzer = await intent(customerQuery);
@@ -149,8 +101,8 @@ async function runPromptchain(customerQuery) {
     feedback,
   ];
 }
-runPromptchain("i want to open an account").then(
-  (aiResponse) => {
-    console.log(aiResponse);
-  }
-);
+
+// testing
+runPromptchain("i notice a deduction in my account last night").then((aiResponse) => {
+  console.log(aiResponse);
+});
