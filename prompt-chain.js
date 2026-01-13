@@ -34,9 +34,8 @@ async function chatBot(userPrompt) {
 
 async function intent(customerQuery) {
   return await chatBot(
-    `analyze the intent of this customer query: ${customerQuery}\n\n
-      you are a banking support assistant specializing in analyzing customer's query, understand and analyze thier query 
- and state their intention in maximum  4 words`
+    `customer's query : ${customerQuery}
+    you are a banking customer assistant support analyze the intent of this customer query in maximum 4 words`
   );
 }
 
@@ -44,10 +43,10 @@ async function intent(customerQuery) {
 
 async function suggestedCategories(intentAnalyzer) {
   return await chatBot(
-    `based on the analyzed intent: ${intentAnalyzer} suggest 2-3 categories that best match the customer's query from ${availableCategories.join(
-      ","
-    )} no explanation, just return strictly the categories that fit and seperate the suggested categories with comma`,
-    "you are an intelligent banking customer support, specialize in customers query classification"
+    `based on the analyzed intent: ${intentAnalyzer} you are an intelligent banking customer support, specialize in customers query classification
+     suggest 2-3 categories that best match the customer's query from ${availableCategories.join(
+       ","
+     )} no explanation, just return strictly the categories that fit and seperate the suggested categories with comma`
   );
 }
 
@@ -56,13 +55,10 @@ async function suggestedCategories(intentAnalyzer) {
 async function selectedCategory(customerQuery, mappedCategory) {
   return await chatBot(
     `
-    customer's query: ${customerQuery}\n\n
-
-  suggested categories: ${mappedCategory}
-
-  select only single best that matches the customer's query. Respond with only the category name`,
-
-    "you are an intelligent banking customer support, specialize in customer's query classification"
+   customer's query: ${customerQuery}\n\n suggested categories: ${mappedCategory}
+   you are an intelligent banking customer support, specialize in customer's query classification,
+  select only single best that matches the customer's query. Respond with only the category name.
+  `
   );
 }
 // stage 4:Extract and request for an additional important details to complete the query
@@ -70,10 +66,11 @@ async function selectedCategory(customerQuery, mappedCategory) {
 async function extractDetails(customerQuery, selectedCategory) {
   return await chatBot(
     `
-     customer's query: ${customerQuery}\n\n
+    customer's query: ${customerQuery}\n\n
     based on selected category ${selectedCategory}
-     `,
-    "you are a banking customer support assitant, request for only specific details needed to resolve the customer's issue or complaint, in just one sentence"
+    you are a banking customer support assitant, request for only specific details needed to resolve the 
+    customer's issue or complaint, in just one sentence
+     `
   );
 }
 // stage 5: Generate a suitable response to the user
@@ -84,7 +81,7 @@ async function shortResponse(customerQuery, extractDetails) {
     customer's query: ${customerQuery}\n\n
     requested details: ${extractDetails}
     
-    you are a banking customer support assistant write a very short and closing response
+    you are a banking customer support assistant return a very short and closing sentence
      to the customer without repeating the requested details`
   );
 }
